@@ -23,35 +23,8 @@ static const Worker_T INVALID_ID = (unsigned int)-1;
 bool help(const AvailabilityMatrix& avail,
     size_t dailyNeed,
     size_t maxShifts,
-    DailySchedule& sched, int row , int col, map<int,int>);
+    DailySchedule& sched,unsigned int row ,unsigned int col, vector<int>& temp);
 
-// bool Sudoku::solveHelper(int row, int col) {
-//   // TODO: IMPLEMENT THIS
-//   if(col == 9){
-//     col = 0;
-//     row++;
-//   }
-
-//   if(row == 9){
-//     return true;
-//   }
-//   else if(board[row][col] == 0){
-//     for(int value = 1; value < 10; ++value){
-//       board[row][col] = value;
-//      if(isValid(row,col)){ 
-//        if(solveHelper(row,col+1)){
-//          return true;
-//        }
-//      }
-//      board[row][col] = 0;
-//     }
-//        return false;
-//   } else {
-//     return solveHelper(row,col+1);
-//   }
-// } 
-
-// Add your implementation of schedule() and other helper functions here
 
 bool schedule(
     const AvailabilityMatrix& avail,
@@ -64,10 +37,19 @@ bool schedule(
         return false;
     }
     sched.clear();
+		vector<int> temp(avail[0].size());
+		for(unsigned int i = 0; i < avail.size(); i++){//dailyNeed
+			sched.push_back(vector<Worker_T>());
+			for(unsigned int j = 0; j < dailyNeed; j++){//avail[0].size()
+				sched[i].push_back(-1);
+			}
+			
+		}
+
     // Add your code below
     //im thinking a map of user to how many days used.
-    map<int , int> temp;
-    help(avail, dailyNeed, maxShifts, sched, 0,0,temp);
+    
+    return help(avail, dailyNeed, maxShifts, sched, 0,0,temp);
 
 
 
@@ -76,29 +58,90 @@ bool schedule(
 bool help(const AvailabilityMatrix& avail,
     size_t dailyNeed,
     size_t maxShifts,
-    DailySchedule& sched, int row , int col,map <int, int> temp){
+    DailySchedule& sched, unsigned int row , unsigned int col,vector<int>& temp){
         //iterate through columns
         if(col == dailyNeed){
             col = 0;
-            row++;
+						row++;
+						// if(col == maxShifts){
+						// 	row++;
+						// }else {
+						// 	return false;
+						// }
+            
         }
-        if(row = avail[0].size()){
+					// r ./schedwork_tests --gtest_filter=Schedule.Nominal1
+					// b schedwork.cpp: 59
+        if(row == avail.size()){
             return true;
-        }else if(avail[row][col] == 1){
-            for(int i = 0; i < avail.size()-1;++i ){
-                sched[row][col] = i;
-                temp[i]++;
-                //worker can't work on the same day twice... thats the second condition
-                if(temp[i] < maxShifts){
-                    if(help(avail,dailyNeed,maxShifts,sched,row, col+1,temp)){
-                        return true;
-                    }
-                }
-                sched[row][col] = INVALID_ID;
-            }
-            return false;
-        }else{
-            return help(avail,dailyNeed,maxShifts,sched,row, col+1,temp);
-        }     
+						//for every worker
+        }
+				//cout << "sched[0].size(): " << sched[0].size() << endl;
+				for(unsigned int i = 0; i < avail[0].size();++i ){
+					
+					if(avail[row][i]){
+						if(temp[i] >= maxShifts){
+
+						}
+						else{
+							if(find(sched[row].begin(), sched[row].end(), i) != sched[row].end()){//find(sched[row].begin(), sched[row].end(), i) == sched[row].end()
+								continue;
+							}
+							sched[row][col] = i;
+							temp[i]++;
+							if(help(avail,dailyNeed,maxShifts,sched,row, col+1,temp)){
+								return true;
+							}
+							else{
+								sched[row][col] = -1;
+								temp[i]--;
+							}
+						}
+					}
+					else{
+						continue;
+					}
+				}
+
+			return false;
 
 }
+// else if(avail[row][col]){
+//             for(unsigned int i = 0; i < sched.size();++i ){
+//                 sched[row][col] = i;
+//                 temp[i]++;
+//                 //worker can't work on the same day twice... thats the second condition
+//                 if(temp[i] <= maxShifts){
+//                     if(help(avail,dailyNeed,maxShifts,sched,row, col+1,temp)){
+//                         return true;
+//                     }
+//                 }
+//                 sched[row][col] = INVALID_ID;
+// 								temp[i]--;
+//             }
+//             return false;
+// 				}else{
+//             return help(avail,dailyNeed,maxShifts,sched,row, col+1,temp);
+//         }     
+
+
+
+// for(unsigned int i = 0; i < sched[0].size();++i ){
+// 					if(temp[i] == NULL){
+// 						temp[i] == 0;
+// 					}
+// 					if(avail[row][col]){
+// 						if(temp[i] < maxShifts){
+// 							sched[row][col] = i;
+//               temp[i]++;
+// 							if(sched[row].size() == dailyNeed){
+// 								if(help(avail,dailyNeed,maxShifts,sched,row, col+1,temp)){
+//                   return true;
+//                 }else{
+// 									sched[row][col] = INVALID_ID;
+//  									temp[i]--;
+// 								}
+// 							}
+// 						}
+// 					}
+// 				}
